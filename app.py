@@ -36,6 +36,7 @@ prompt = st.text_input("Write your query here")
 prompt_text = generate_prompt(tables)
 prompt_template = f"""
 {prompt_text}
+Please use mysql query syntax
 User Input: {{user_input}}
 """
 
@@ -43,7 +44,7 @@ title_template = PromptTemplate(
     input_variables=["user_input"], template=prompt_template
 )
 
-llm = OpenAI(temperature=0.9)
+llm = OpenAI(temperature=0)
 sql_chain = LLMChain(llm=llm, prompt=title_template,verbose=True)
 
 if prompt:
