@@ -14,7 +14,7 @@ tables = {
 import streamlit as st 
 from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+from langchain.chains import LLMChain, SimpleSequentialChain
 
 
 # Generate the prompt based on the provided tables and columns
@@ -36,18 +36,24 @@ prompt = st.text_input("Write your query here")
 prompt_text = generate_prompt(tables)
 prompt_template = f"""
 {prompt_text}
-Please use mysql query syntax
+Verify the query as per mysql db query syntax
 User Input: {{user_input}}
 """
 
-title_template = PromptTemplate(
+sql_template = PromptTemplate(
     input_variables=["user_input"], template=prompt_template
 )
+validate_template = PromptTemplate(
+    input_variables=["query"], template = 'validate query as per mysql SQL syntax and correct it {query}'
+)
 
-llm = OpenAI(temperature=0)
-sql_chain = LLMChain(llm=llm, prompt=title_template,verbose=True)
+
+llm = OpenAI(temperature=0.9)
+sql_chain = LLMChain(llm=llm, prompt=sql_template,verbose=True)
+validate_chain = LLMChain(llm=llm, prompt=validate_template,verbose=True)
+sequence_chain = SimpleSequentialChain(chains=[sql_chain,validate_chain], verbose=True)
 
 if prompt:
-    response = sql_chain.run(user_input=prompt)
+    response = sequence_chain.run(prompt)
     st.write(response)
     
