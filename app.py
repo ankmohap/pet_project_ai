@@ -40,18 +40,29 @@ Verify the query as per mysql db query syntax
 User Input: {{user_input}}
 """
 
+schema_template = f"""
+Validate the query {{correct_query}} as per the below schema and give correct query 
+- tables : clients,products,orders
+- columns : name, age, city, order_cd, client_name, amount, product_name, product_cd, product_cd, name, description, offer_cd
+
+"""
+
 sql_template = PromptTemplate(
     input_variables=["user_input"], template=prompt_template
 )
 validate_template = PromptTemplate(
-    input_variables=["query"], template = 'validate query as per mysql SQL syntax and correct it {query}'
+    input_variables=["query"], template = 'validate query as per mysql SQL syntax and correct the query : {query}'
+)
+validate_schema_template = PromptTemplate(
+    input_variables=["correct_query"], template = schema_template
 )
 
 
 llm = OpenAI(temperature=0.9)
 sql_chain = LLMChain(llm=llm, prompt=sql_template,verbose=True)
 validate_chain = LLMChain(llm=llm, prompt=validate_template,verbose=True)
-sequence_chain = SimpleSequentialChain(chains=[sql_chain,validate_chain], verbose=True)
+val_schema_chain = LLMChain(llm=llm, prompt=validate_schema_template,verbose=True) 
+sequence_chain = SimpleSequentialChain(chains=[sql_chain,validate_chain,val_schema_chain], verbose=True)
 
 if prompt:
     response = sequence_chain.run(prompt)
