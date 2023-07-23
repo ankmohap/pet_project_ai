@@ -11,3 +11,10 @@ CREATE TABLE `orders` (
   `product_name` varchar(30) DEFAULT NULL,
   `product_cd` varchar(30) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `products` (
+  `product_cd` varchar(30) DEFAULT NULL,
+  `name` varchar(30) DEFAULT NULL,
+  `description` varchar(300) DEFAULT NULL,
+  `offer_cd` varchar(30) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
