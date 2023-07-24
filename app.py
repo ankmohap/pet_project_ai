@@ -34,12 +34,15 @@ def text_to_sql(user_input, tables):
 st.title("Super Query interface")
 prompt = st.text_input("Write your query here")
 prompt_text = generate_prompt(tables)
+
+##PROMPT to - Verify SQL Syntax after SQL chain give a sql Output
 prompt_template = f"""
 {prompt_text}
 Verify the query as per mysql db query syntax
 User Input: {{user_input}}
 """
 
+##PROMPT to - Verify Schema after SQL syntax is verified
 schema_template = f"""
 Validate the query {{correct_query}} as per the below schema and give correct query 
 - tables : clients,products,orders
@@ -47,21 +50,30 @@ Validate the query {{correct_query}} as per the below schema and give correct qu
 
 """
 
+#Template 1 - prompt for  taking user input and giving sql output
 sql_template = PromptTemplate(
     input_variables=["user_input"], template=prompt_template
 )
+
+#Template 2 - prompt for  taking output of template 1 and validating syntax
 validate_template = PromptTemplate(
     input_variables=["query"], template = 'validate query as per mysql SQL syntax and correct the query : {query}'
 )
+
+#Template 3 - prompt for  taking output of template 2 and validating schema
 validate_schema_template = PromptTemplate(
     input_variables=["correct_query"], template = schema_template
 )
 
 
 llm = OpenAI(temperature=0.9)
+#chain 1 for template 1 
 sql_chain = LLMChain(llm=llm, prompt=sql_template,verbose=True)
+#chain 2 for template 2
 validate_chain = LLMChain(llm=llm, prompt=validate_template,verbose=True)
+#chain 3 for template 3
 val_schema_chain = LLMChain(llm=llm, prompt=validate_schema_template,verbose=True) 
+#Chains instructed to run sequential one after other so that o/p of one is fed to the other as promt variable 
 sequence_chain = SimpleSequentialChain(chains=[sql_chain,validate_chain,val_schema_chain], verbose=True)
 
 if prompt:
